@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Feedback</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      /* Cleaner background to make card pop */
+      background-color: #f8fafc; /* Tailwind bg-gray-50 */
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    /* Star Rating CSS Fix:
+      - 'color' defines the default (unselected) state.
+      - '.hovered' is a temporary state applied by JS on mouseover.
+      - '.selected' is the permanent state applied by JS on click.
+      - We use ':not(.pointer-events-none)' to disable hover effects after a click.
+    */
+    .star-rating button {
+      transition: all 0.15s ease-in-out;
+      color: #cbd5e1; /* Default gray */
+      cursor: pointer;
+    }
+    .star-rating:not(.pointer-events-none) button:hover {
+      transform: scale(1.15);
+    }
+    .star-rating button.hovered {
+      color: #fde047; /* Light yellow for hover-fill */
+    }
+    .star-rating button.selected {
+      color: #facc15; /* Darker yellow for clicked/selected */
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+  <!-- 
+    Main Card:
+    - Increased padding (p-10 to p-12)
+    - Softer shadow (shadow-2xl to shadow-xl)
+    - Added border for definition
+  -->
+  <div class="w-full max-w-lg bg-white rounded-3xl shadow-xl border border-gray-100 p-8 sm:p-12">
+
+    <!-- Main View: Star Rating -->
+    <div id="view-star-rating">
+      <!-- Icon Wrapper: Replaced with Logo -->
+      <div class="flex justify-center mb-8">
+        <div class="bg-indigo-600 rounded-xl p-4 shadow-lg inline-block">
+          <img src="https://lh3.googleusercontent.com/d/1_eFG61720UHdHtgzAScVaA083rVBylyY" 
+               alt="DustBusters Cleaners Logo" 
+               class="w-40 h-auto"
+               onerror="this.src='https://placehold.co/160x40/6366f1/ffffff?text=DustBusters'; this.onerror=null;">
+        </div>
+      </div>
+
+      <!-- Typography: Increased font sizes and improved spacing -->
+      <h1 class="text-3xl font-bold text-center text-gray-900 mb-3">How was your experience?</h1>
+      <p class="text-lg text-center text-gray-500 mb-10">Your feedback helps us serve you better.</p>
+
+      <!-- 
+        Star Container:
+        - data-rating now stores the *actual* clicked rating.
+      -->
+      <div id="starContainer" class="star-rating flex justify-center space-x-2 sm:space-x-3 mb-6" data-rating="0">
+        <button type="button" data-value="1" class="text-5xl sm:text-6xl">&#9733;</button>
+        <button type="button" data-value="2" class="text-5xl sm:text-6xl">&#9733;</button>
+        <button type="button" data-value="3" class="text-5xl sm:text-6xl">&#9733;</button>
+        <button type="button" data-value="4" class="text-5xl sm:text-6xl">&#9733;</button>
+        <button type="button" data-value="5" class="text-5xl sm:text-6xl">&#9733;</button>
+      </div>
+
+      <input type="hidden" id="starRating" value="0">
+      <!-- Message area for feedback (e.g., "Thank you!") -->
+      <p id="ratingMessage" class="text-center text-gray-600 font-medium mt-6 h-6 transition-all"></p>
+    </div>
+
+    <!-- View 2: Internal Feedback Form (for 1-4 stars) -->
+    <div id="view-internal-feedback" class="hidden">
+      <!-- Logo -->
+      <div class="flex justify-center mb-8">
+        <div class="bg-indigo-600 rounded-xl p-4 shadow-lg inline-block">
+          <img src="https://lh3.googleusercontent.com/d/1_eFG61720UHdHtgzAScVaA083rVBylyY" 
+               alt="DustBusters Cleaners Logo" 
+               class="w-40 h-auto"
+               onerror="this.src='https://placehold.co/160x40/6366f1/ffffff?text=DustBusters'; this.onerror=null;">
+        </div>
+      </div>
+      <h1 class="text-3xl font-bold text-center text-gray-900 mb-3">We appreciate your honesty 💬</h1>
+      <p class="text-lg text-center text-gray-500 mb-8">Please let us know what we can improve to make your next experience 5 stars.</p>
+
+      <!-- 
+        FormSubmit.co Form:
+        - Make sure 'admin@dustbusterscleaners.com' is activated in your FormSubmit account.
+        - The _next URL is now set dynamically and correctly by JS.
+      -->
+      <form id="internalForm" action="https://formsubmit.co/admin@dustbusterscleaners.com" method="POST" class="space-y-5">
+        <input type="hidden" name="_subject" value="New 1–4 Star Feedback - DustBusters Cleaners">
+        <input type="hidden" id="rating-for-email" name="star_rating" value="">
+        <!-- <input type="hidden" id="next-url" name="_next" value=""> REMOVED: Handled by AJAX now -->
+        <input type="hidden" name="_captcha" value="false">
+        <input type="hidden" name="_template" value="table">
+        <input type="text" name="_honey" style="display:none">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+            <input type="text" id="firstName" name="first_name" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50 transition-all" placeholder="John" required>
+          </div>
+          <div>
+            <label for="lastName" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+            <input type="text" id="lastName" name="last_name" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50 transition-all" placeholder="Doe" required>
+          </div>
+        </div>
+
+        <div>
+          <label for="feedbackText" class="block text-sm font-medium text-gray-700 mb-1">Your Feedback</label>
+          <textarea id="feedbackText" name="feedback" rows="4" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50 transition-all" placeholder="What could we do better?" required></textarea>
+        </div>
+
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Your Email (Optional)</label>
+          <input type="email" id="email" name="_replyto" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50 transition-all" placeholder="you@example.com">
+        </div>
+
+        <button type="submit" id="internalSubmitBtn" class="w-full py-3.5 px-6 rounded-xl text-white font-semibold bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50">Submit Feedback</button>
+      </form>
+    </div>
+
+    <!-- View 3: Final Thank You Message -->
+    <div id="view-final-thanks" class="hidden text-center">
+      <!-- Logo -->
+      <div class="flex justify-center mb-8">
+        <div class="bg-indigo-600 rounded-xl p-4 shadow-lg inline-block">
+          <img src="https://lh3.googleusercontent.com/d/1_eFG61720UHdHtgzAScVaA083rVBylyY" 
+               alt="DustBusters Cleaners Logo" 
+               class="w-40 h-auto"
+               onerror="this.src='https://placehold.co/160x40/6366f1/ffffff?text=DustBusters'; this.onerror=null;">
+        </div>
+      </div>
+      <h1 class="text-3xl font-bold text-gray-900 mb-3">Thank you! 🎉</h1>
+      <p class="text-lg text-gray-500 mb-8">We’ve received your feedback and will use it to improve our service.</p>
+      <button id="start-over-btn" class="w-full py-3 rounded-xl text-indigo-700 font-medium bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">Submit Another</button>
+    </div>
+  </div>
+
+  <script>
+    // --- CONFIGURATION ---
+    const YOUR_GOOGLE_REVIEW_LINK = "https://g.page/r/CVfMkbfdfFy_EAI/review";
+
+    // --- ELEMENT SELECTORS ---
+    const starView = document.getElementById('view-star-rating');
+    const feedbackView = document.getElementById('view-internal-feedback');
+    const thanksView = document.getElementById('view-final-thanks');
+    const starContainer = document.getElementById('starContainer');
+    const starRatingInput = document.getElementById('starRating');
+    const ratingMessage = document.getElementById('ratingMessage');
+    const stars = starContainer.querySelectorAll('button');
+    const internalForm = document.getElementById('internalForm');
+    const startOverBtn = document.getElementById('start-over-btn');
+
+    // --- FUNCTIONS ---
+
+    /**
+     * Sets the *permanent* clicked rating.
+     * Applies 'selected' class to stars and updates hidden input.
+     * @param {number} rating - The rating value (1-5) or 0 to clear.
+     */
+    function setClickedRating(rating) {
+      starRatingInput.value = rating;
+      starContainer.setAttribute('data-rating', rating);
+      stars.forEach(star => {
+        star.classList.remove('hovered'); // Always clear hover state on click
+        star.classList.toggle('selected', parseInt(star.dataset.value) <= rating);
+      });
+    }
+
+    /**
+     * Sets the *temporary* hover rating.
+     * Applies 'hovered' class to stars.
+     * @param {number} rating - The rating value (1-5).
+     */
+    function setHoverRating(rating) {
+      stars.forEach(star => {
+        star.classList.remove('selected'); // Temporarily hide selected state
+        star.classList.toggle('hovered', parseInt(star.dataset.value) <= rating);
+      });
+    }
+
+    /**
+     * Resets stars to show the *permanent* clicked rating.
+     * Clears 'hovered' state and shows 'selected' state.
+     */
+    function resetStarsToClickedRating() {
+      const clickedRating = parseInt(starContainer.getAttribute('data-rating'));
+      stars.forEach(star => {
+        star.classList.remove('hovered');
+        star.classList.toggle('selected', parseInt(star.dataset.value) <= clickedRating);
+      });
+    }
+
+    /**
+     * Switches the view to the internal feedback form.
+     * @param {number} rating - The rating to pass to the form.
+     */
+    function showInternalFormWithRating(rating) {
+      document.getElementById('rating-for-email').value = String(rating);
+      
+      // The _next URL is no longer needed as we handle success with AJAX
+      starView.classList.add('hidden');
+      feedbackView.classList.remove('hidden');
+    }
+
+    // --- EVENT LISTENERS ---
+
+    // Star Rating Logic
+    stars.forEach(star => {
+      star.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (starContainer.classList.contains('pointer-events-none')) return;
+
+        const rating = parseInt(star.dataset.value);
+        setClickedRating(rating); // Set the permanent rating
+        starContainer.classList.add('pointer-events-none'); // Disable stars
+
+        if (rating === 5) {
+          // 5-Star Experience: Go to Google
+          ratingMessage.textContent = "Thank you! Redirecting to Google...";
+          ratingMessage.classList.add('text-green-600');
+          
+          setTimeout(() => {
+            window.open(YOUR_GOOGLE_REVIEW_LINK, '_blank');
+            // Reset the form for next time
+            starContainer.classList.remove('pointer-events-none');
+            setClickedRating(0);
+            ratingMessage.textContent = "";
+            ratingMessage.classList.remove('text-green-600');
+          }, 1500);
+
+        } else {
+          // 1-4 Star Experience: Show internal form
+          ratingMessage.textContent = "We're sorry to hear that.";
+          ratingMessage.classList.add('text-red-600');
+          
+          setTimeout(() => {
+            showInternalFormWithRating(rating);
+            // Reset message for next time
+            ratingMessage.textContent = "";
+            ratingMessage.classList.remove('text-red-600');
+            // Note: We don't reset stars here, as the view is changing
+          }, 1200);
+        }
+      });
+
+      // Handle hover-to-preview rating
+      star.addEventListener('mouseover', () => {
+        if (starContainer.classList.contains('pointer-events-none')) return;
+        const hoverRating = parseInt(star.dataset.value);
+        setHoverRating(hoverRating);
+      });
+    });
+
+    // Reset stars when mouse leaves the container
+    starContainer.addEventListener('mouseleave', () => {
+      if (starContainer.classList.contains('pointer-events-none')) return;
+      resetStarsToClickedRating();
+    });
+
+    // Internal Form Submission Logic - UPDATED FOR AJAX
+    if (internalForm) {
+      internalForm.addEventListener('submit', async (e) => {
+        // PREVENT the default form submission
+        e.preventDefault(); 
+        
+        const btn = document.getElementById('internalSubmitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Sending...';
+        btn.classList.add('opacity-70');
+        
+        // Clear any previous error messages
+        ratingMessage.textContent = "";
+        ratingMessage.classList.remove('text-red-600');
+
+        // Get form data and action
+        const formData = new FormData(internalForm);
+        const action = internalForm.getAttribute('action');
+
+        try {
+          // Use fetch to submit the form asynchronously
+          const response = await fetch(action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'Accept': 'application/json' // Ask FormSubmit for a JSON response
+            }
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            
+            if (result.success === "true" || result.success === true) {
+              // SUCCESS! Manually show the thank you view
+              btn.textContent = 'Sent! Thank you!';
+              
+              setTimeout(() => {
+                feedbackView.classList.add('hidden');
+                thanksView.classList.remove('hidden');
+                
+                // Reset form for next time
+                btn.disabled = false;
+                btn.classList.remove('opacity-70');
+                btn.textContent = 'Submit Feedback';
+                internalForm.reset();
+                starContainer.classList.remove('pointer-events-none'); // Re-enable stars
+                setClickedRating(0); // Reset stars
+              }, 1500);
+
+            } else {
+              // FormSubmit returned an error (e.g., spam)
+              throw new Error(result.message || 'Submission failed');
+            }
+          } else {
+            // Network error
+            throw new Error(`Network error: ${response.statusText}`);
+          }
+
+        } catch (error) {
+          console.error('Form submission error:', error);
+          btn.disabled = false;
+          btn.classList.remove('opacity-70');
+          btn.textContent = 'Error. Try Again.';
+          
+          // Show a user-facing error message on the main screen
+          // We can re-use the ratingMessage element
+          starView.classList.remove('hidden');
+          feedbackView.classList.add('hidden');
+          ratingMessage.textContent = "Submission failed. Please try again.";
+          ratingMessage.classList.add('text-red-600');
+          starContainer.classList.remove('pointer-events-none');
+          setClickedRating(0);
+        }
+      });
+    }
+    
+    // "Start Over" Button Logic
+    if (startOverBtn) {
+      startOverBtn.addEventListener('click', () => {
+        // Reload the page without the ?submitted=true query param
+        // And reset all views
+        thanksView.classList.add('hidden');
+        starView.classList.remove('hidden');
+        feedbackView.classList.add('hidden');
+        starContainer.classList.remove('pointer-events-none');
+        setClickedRating(0);
+
+        // Also clear the query param from URL without reloading
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.pathname);
+        }
+      });
+    }
+
+    // --- INITIALIZATION ---
+
+    // Check for ?submitted=true in URL to show "Thank You" page
+    // This is now a fallback, as AJAX handles the primary flow
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('submitted')) {
+      starView.classList.add('hidden');
+      feedbackView.classList.add('hidden');
+      thanksView.classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
+
+
